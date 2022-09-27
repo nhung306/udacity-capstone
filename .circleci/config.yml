@@ -1,0 +1,140 @@
+version: 2.1
+orbs: 
+  slack: circleci/slack@4.10.1
+  aws-cli: circleci/aws-cli@3.1
+
+commands:
+  destroy-environment:
+    description: Destroy back-end and front-end cloudformation stacks given a workflow ID.
+    parameters:
+      workflow_id:
+        type: string
+    steps:
+      - run:
+          name: Destroy environments
+          when: on_fail
+          command: |
+            aws s3 rm s3://udapeople-"<<parameters.workflow_id>>" --recursive
+            aws s3 rb s3://udapeople-"<<parameters.workflow_id>>" --force
+            aws cloudformation delete-stack --stack-name "udapeople-frontend-<<parameters.workflow_id>>"
+            aws cloudformation delete-stack --stack-name "udapeople-backend-<<parameters.workflow_id>>"
+  
+  revert-migrations:
+    description: Revert the last migration if successfully run in the current workflow.
+    parameters:
+      workflow_id:
+        type: string
+    steps:
+      - run:
+          name: Revert migrations
+          when: on_fail
+          command: |
+            export SUCCESS=$(curl --insecure  https://kvdb.io/AnCL2AcTbjnej3iwokxmCv/migration_<< parameters.workflow_id >>)
+            # export SUCCESS=1
+            if(( $SUCCESS==1 )); 
+            then
+              cd ~/project/backend
+              npm install
+              npm run migrations:revert
+            fi     
+jobs:
+  build-app:
+    docker:
+      - image: circleci/node:13.8.0
+    steps:
+      - checkout
+      - run:
+          name: Application build
+          command: |
+            cd helloworld
+            npm install
+            npm run build
+      - save_cache:
+          paths: [helloworld/node_modules]
+          key: helloworld-{{ checksum "packages.json" }}
+      - slack/notify:
+          event: fail
+          template: basic_fail_1
+  
+  scan-app:
+    docker:
+      - image: circleci/node:13.8.0
+    steps:
+      - checkout      
+      - run:
+          name: Move to Backend folder
+          command: |
+            cd helloworld
+      - restore_cache:
+          keys: helloworld-{{ checksum "packages.json" }}
+      - run:
+          name: scan-app run
+          command: |
+            npm install
+            npm audit --audit-level=critical
+
+  create-kubernetes-cluster:
+    docker:
+      - image: amazon/aws-cli
+    steps:
+        - checkout
+        
+        - run:
+          name: Install eksctl
+          command: |
+            curl --silent --location "https://github.com/weaveworks/eksctl/releases/download/latest_release/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
+            sudo mv /tmp/eksctl /usr/local/bin
+            
+        - run:
+          name: Create kubernetes cluster
+          command: |
+            eksctl create cluster --name eksctl-demo --region=us-east-1
+        
+  deploy-app:
+    docker:
+      - image: amazon/aws-cli
+        auth:
+          username: $DOCKER_USER
+          password: $DOCKERHUB_PASSWORD
+    steps:
+      - checkout
+      - add_ssh_keys:
+          fingerprints: ["e4:1f:85:37:88:8f:00:35:d6:88:31:d0:df:f3:35:b1"]
+      
+      - run:
+          name: Linting Dockerfile
+          command: |
+            wget -O /bin/hadolint https://github.com/hadolint/hadolint/releases/download/v1.16.3/hadolint-Linux-x86_64 &&\
+            chmod +x /bin/hadolint
+            hadolint Dockerfile
+      
+       - run:
+          name: Containerize Application
+          command: |
+            docker build -t udacitycapstone .
+            docker login -u $DOCKER_USER --password-stdin
+            docker push $DOCKER_USER/udacitycapstone:latest
+      - run:
+          name: Deploy to Kubernete cluster
+          command:  |
+            aws eks --region us-east-1 update-kubeconfig --name eksctl-demo
+            export KUBECONFIG=$HOME/.kube/config
+            kubectl create deploy udacitycapstone --image=$DOCKER_USER/udacitycapstone:latest
+            kubectl port-forward udacitycapstone 8000:80
+      
+      - destroy-environment:
+          workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
+
+workflows:
+  default:
+    jobs:
+      - build-app
+      - scan-app:
+          requires: [build-app]
+      - create-kubernetes-cluster:
+          requires: [scan-app]
+          filters:
+            branches:
+              only: [main]
+      - deploy-app:
+          requires: [scan-app, create-kubernetes-cluster]
