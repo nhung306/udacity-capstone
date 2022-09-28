@@ -45,6 +45,7 @@ jobs:
       - run:
           name: scan-app run
           command: |
+            echo {checksum "helloworld/packages.json"}
             cd helloworld
             npm install
             npm audit --audit-level=critical
@@ -54,6 +55,10 @@ jobs:
       - image: amazon/aws-cli
     steps:
       - checkout
+      - run:
+          name: Install tar utility
+          command: |
+            yum install -y tar gzip
       - run:
           name: Install eksctl
           command: |
