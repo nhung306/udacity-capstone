@@ -38,17 +38,14 @@ jobs:
     docker:
       - image: circleci/node:13.8.0
     steps:
-      - checkout      
-      - run:
-          name: Move to Backend folder
-          command: |
-            cd helloworld
+      - checkout
       - restore_cache:
-          keys: helloworld-{{ checksum "packages.json" }}
+          keys: helloworld-{{ checksum "helloworld/packages.json" }}
           
       - run:
           name: scan-app run
           command: |
+            cd helloworld
             npm install
             npm audit --audit-level=critical
 
