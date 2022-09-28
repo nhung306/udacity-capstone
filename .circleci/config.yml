@@ -71,12 +71,7 @@ jobs:
       - run:
           name: Create kubernetes cluster
           command: |
-            eksctl create cluster -f cluster.yml
-            
-      - persist_to_workspace:
-          root: ~/
-          paths:
-            - /root/.kube/config
+            eksctl create cluster --region=us-east-1 --zones=us-east-1a,us-east-1b
         
   deploy-app:
     docker:
