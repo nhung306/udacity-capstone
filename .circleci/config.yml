@@ -40,7 +40,9 @@ jobs:
     steps:
       - checkout
       - restore_cache:
-          keys: helloworld-{{ checksum "helloworld/package.json" }}
+          keys: 
+            - helloworld-{{ checksum "helloworld/package.json" }}
+            - helloworld-
           
       - run:
           name: scan-app run
