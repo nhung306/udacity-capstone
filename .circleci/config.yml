@@ -98,7 +98,7 @@ jobs:
       - run:
           name: Install kubectl
           command: |
-            apt-get install -y kubectl
+            sudo apt-get install -y kubectl
             
       - run:
           name: Linting Dockerfile
