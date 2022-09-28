@@ -122,6 +122,7 @@ jobs:
             aws eks --region us-east-1 update-kubeconfig --name eksctl-capstone
             export KUBECONFIG=/home/circleci/.kube/config
             kubectl create deploy udacitycapstone --image=$DOCKER_USER/udacitycapstone:latest
+            kubectl wait --for=condition=ready pod --all
             kubectl port-forward udacitycapstone 8000:80
       
       - destroy-environment:
