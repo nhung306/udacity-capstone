@@ -115,6 +115,7 @@ jobs:
             docker push $dockerpath
       - run:
           name: Deploy to Kubernete cluster
+          background: true
           command:  |
             dockerpath="$DOCKER_USER/udacitycapstone:latest"
             aws eks --region us-east-1 update-kubeconfig --name eksctl-capstone
