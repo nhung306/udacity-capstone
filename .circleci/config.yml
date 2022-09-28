@@ -27,7 +27,6 @@ jobs:
           command: |
             cd helloworld
             npm install
-            npm run build
       - save_cache:
           paths: [helloworld/node_modules]
           key: helloworld-{{ checksum "packages.json" }}
