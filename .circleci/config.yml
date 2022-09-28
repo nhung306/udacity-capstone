@@ -46,6 +46,7 @@ jobs:
             cd helloworld
       - restore_cache:
           keys: helloworld-{{ checksum "packages.json" }}
+          
       - run:
           name: scan-app run
           command: |
@@ -56,18 +57,17 @@ jobs:
     docker:
       - image: amazon/aws-cli
     steps:
-        - checkout
-        
-        - run:
+      - checkout
+      - run:
           name: Install eksctl
           command: |
             curl --silent --location "https://github.com/weaveworks/eksctl/releases/download/latest_release/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
             sudo mv /tmp/eksctl /usr/local/bin
-            
-        - run:
+          
+      - run:
           name: Create kubernetes cluster
           command: |
-            eksctl create cluster --name eksctl-demo --region=us-east-1
+            eksctl create cluster --name=eksctl-demo --region=us-east-1
         
   deploy-app:
     docker:
