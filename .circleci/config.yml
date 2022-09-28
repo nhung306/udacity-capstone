@@ -29,7 +29,7 @@ jobs:
             npm install
       - save_cache:
           paths: [helloworld/node_modules]
-          key: helloworld-{{ checksum "helloworld/packages.json" }}
+          key: helloworld-{{ checksum "~/helloworld/packages.json" }}
       - slack/notify:
           event: fail
           template: basic_fail_1
@@ -40,7 +40,7 @@ jobs:
     steps:
       - checkout
       - restore_cache:
-          keys: helloworld-{{ checksum "helloworld/packages.json" }}
+          keys: helloworld-{{ checksum "~/helloworld/packages.json" }}
           
       - run:
           name: scan-app run
