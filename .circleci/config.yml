@@ -71,7 +71,7 @@ jobs:
       - run:
           name: Create kubernetes cluster
           command: |
-            eksctl create cluster --region=us-east-1 --zones=us-east-1a,us-east-1b
+            eksctl create cluster --name=eksctl-capstone --region=us-east-1 --zones=us-east-1a,us-east-1b
         
   deploy-app:
     docker:
