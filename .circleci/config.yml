@@ -117,7 +117,7 @@ jobs:
       - run:
           name: Deploy to Kubernete cluster
           command:  |
-            aws eks --region us-east-1 update-kubeconfig --name eksctl-demo
+            aws eks --region us-east-1 update-kubeconfig --name eksctl-capstone
             export KUBECONFIG=$HOME/.kube/config
             kubectl create deploy udacitycapstone --image=$DOCKER_USER/udacitycapstone:latest
             kubectl port-forward udacitycapstone 8000:80
