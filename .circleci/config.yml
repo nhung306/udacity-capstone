@@ -2,7 +2,6 @@ version: 2.1
 orbs: 
   slack: circleci/slack@4.10.1
   aws-cli: circleci/aws-cli@3.1
-  docker: circleci/docker@2.1.4
 
 commands:
   destroy-environment:
@@ -95,6 +94,11 @@ jobs:
           
       - attach_workspace:
           at: ~/
+          
+      - run:
+          name: Install kubectl
+          command: |
+            apt-get install -y kubectl
             
       - run:
           name: Linting Dockerfile
@@ -118,7 +122,7 @@ jobs:
           name: Deploy to Kubernete cluster
           command:  |
             aws eks --region us-east-1 update-kubeconfig --name eksctl-capstone
-            export KUBECONFIG=$HOME/.kube/config
+            export KUBECONFIG=/home/circleci/.kube/config
             kubectl create deploy udacitycapstone --image=$DOCKER_USER/udacitycapstone:latest
             kubectl port-forward udacitycapstone 8000:80
       
