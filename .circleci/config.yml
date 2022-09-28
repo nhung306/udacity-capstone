@@ -96,7 +96,11 @@ jobs:
       - attach_workspace:
           at: ~/
             
-      - hadolint
+      - run:
+          name: Linting Dockerfile
+          command: |
+            docker pull hadolint/hadolint
+            hadolint Dockerfile
       
       - run:
           name: Containerize Application
