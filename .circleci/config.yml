@@ -2,6 +2,7 @@ version: 2.1
 orbs: 
   slack: circleci/slack@4.10.1
   aws-cli: circleci/aws-cli@3.1
+  docker: circleci/docker@2.1.4
 
 commands:
   destroy-environment:
@@ -95,12 +96,7 @@ jobs:
       - attach_workspace:
           at: ~/
             
-      - run:
-          name: Linting Dockerfile
-          command: |
-            wget -O /bin/hadolint https://github.com/hadolint/hadolint/releases/download/v1.16.3/hadolint-Linux-x86_64 &&\
-            sudo chmod a+rx /bin/hadolint
-            hadolint Dockerfile
+      - hadolint
       
       - run:
           name: Containerize Application
