@@ -88,14 +88,14 @@ jobs:
       - add_ssh_keys:
           fingerprints: ["e4:1f:85:37:88:8f:00:35:d6:88:31:d0:df:f3:35:b1"]
           
-      - attach_workspace:
-          at: ~/
-          
       - run:
           name: Install utility
           command: |
             yum install -y tar gzip
             yum install wget
+          
+      - attach_workspace:
+          at: ~/
             
       - run:
           name: Linting Dockerfile
