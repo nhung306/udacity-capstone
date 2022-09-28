@@ -105,11 +105,8 @@ jobs:
           name: Containerize Application
           command: |
             docker build -t udacitycapstone .
-            
-      - run:
-          name: Push Application
-          command: |
-            docker login -u "$DOCKER_USER" -u "$DOCKERHUB_PASSWORD"
+            echo "$DOCKERHUB_PASSWORD" | docker login -u "$DOCKER_USER" --password-stdin
+            docker push $DOCKER_USER/udacitycapstone:latest
             
       - run:
           name: Deploy to Kubernete cluster
