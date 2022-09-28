@@ -14,3 +14,4 @@ nodeGroups:
     instanceType: t2.small
     availabilityZones: ["eu-west-1b"]
     desiredCapacity: 2
+availabilityZones: ["eu-west-1a","eu-west-1b"]
