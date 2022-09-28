@@ -10,7 +10,7 @@ COPY . helloworld/ /app/
 
 ## Step 3:
 # Install packages
-RUN npm install
+RUN npm install -y
 
 ## Step 4:
 # Expose port 80
