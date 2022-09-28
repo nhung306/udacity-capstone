@@ -70,7 +70,7 @@ jobs:
       - run:
           name: Create kubernetes cluster
           command: |
-            eksctl create cluster --name=eksctl-demo --region=us-east-1
+            eksctl create cluster -f cluster.yml
         
   deploy-app:
     docker:
