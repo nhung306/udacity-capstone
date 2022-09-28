@@ -110,14 +110,13 @@ jobs:
             docker push $dockerpath
       - run:
           name: Deploy to Kubernete cluster
-          background: true
           command:  |
             dockerpath="$DOCKER_USER/udacitycapstone:latest"
             aws eks --region us-east-1 update-kubeconfig --name eksctl-capstone
             export KUBECONFIG=/home/circleci/.kube/config
             kubectl run udacitycapstone --image=$dockerpath --port=80 --labels app=udacitycapstone --restart=Never
             kubectl wait --for=condition=ready pod --all
-            kubectl port-forward udacitycapstone 8000:80
+            kubectl expose deployment udacitycapstone --type=LoadBalancer --name=udacitycapstone --port=80
       
       - destroy-environment:
           workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
