@@ -93,9 +93,6 @@ jobs:
           version: 20.10.14 
           docker_layer_caching: true
           
-      - attach_workspace:
-          at: ~/
-          
       - kubernetes/install-kubectl
             
       - run:
@@ -119,6 +116,7 @@ jobs:
       - run:
           name: Deploy to Kubernete cluster
           command:  |
+            dockerpath="$DOCKER_USER/udacitycapstone:latest"
             aws eks --region us-east-1 update-kubeconfig --name eksctl-capstone
             export KUBECONFIG=/home/circleci/.kube/config
             kubectl run udacitycapstone --image=$dockerpath --port=80 --labels app=udacitycapstone --restart=Never
