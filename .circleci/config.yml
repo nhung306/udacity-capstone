@@ -91,7 +91,7 @@ jobs:
       - run:
           name: Install utility
           command: |
-            yum install wget
+            yum install -y wget
             yum install -y tar gzip
           
       - attach_workspace:
