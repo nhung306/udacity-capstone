@@ -115,7 +115,7 @@ jobs:
             aws eks --region us-east-1 update-kubeconfig --name eksctl-capstone
             export KUBECONFIG=/home/circleci/.kube/config
             kubectl create deploy udacity-${CIRCLE_WORKFLOW_ID:0:7} --image=dockerpath
-            kubectl expose deployment udacity-${CIRCLE_WORKFLOW_ID:0:7} --type=LoadBalancer --name=publicapp-${CIRCLE_WORKFLOW_ID:0:7}
+            kubectl expose deployment udacity-${CIRCLE_WORKFLOW_ID:0:7} --type=LoadBalancer --name=publicapp-${CIRCLE_WORKFLOW_ID:0:7} --port=80
       
       - destroy-environment:
           workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
