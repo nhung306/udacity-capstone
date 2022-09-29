@@ -85,7 +85,6 @@ jobs:
       - kubernetes/install-kubectl
       - setup_remote_docker:
           version: 20.10.14 
-          docker_layer_caching: true
       - run:
           name: Linting Dockerfile
           command: |
@@ -112,7 +111,7 @@ jobs:
             aws eks --region us-east-1 update-kubeconfig --name eksctl-capstone
             export KUBECONFIG=/home/circleci/.kube/config
             kubectl create deploy udacity-${CIRCLE_WORKFLOW_ID:0:7} --image=dockerpath
-            kubectl expose deployment udacity-${CIRCLE_WORKFLOW_ID:0:7} --type=LoadBalancer --name=publicapp-${CIRCLE_WORKFLOW_ID:0:7} --port=80
+            kubectl expose deployment udacity-${CIRCLE_WORKFLOW_ID:0:7} --type=LoadBalancer --name=publicapp-${CIRCLE_WORKFLOW_ID:0:7} --port=80 --nodeport=3000
             
       - run:
           name: store app endpoint and old
