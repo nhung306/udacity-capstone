@@ -90,8 +90,8 @@ jobs:
           name: Linting Dockerfile
           command: |
             sudo wget -O /bin/hadolint https://github.com/hadolint/hadolint/releases/download/v1.16.3/hadolint-Linux-x86_64 &&\
-            sudo chmod +x /bin/hadolint
-            
+            sudo chmod a+x /bin/hadolint
+            sudo hadolint Dockerfile
       - run:
           name: Containerize Application
           command: |
@@ -99,7 +99,7 @@ jobs:
             docker image ls
             
       - run:
-          name: Containerize Application
+          name: Push image
           command: |
             dockerpath="$DOCKER_USER/udacitycapstone:latest"
             echo "$DOCKERHUB_PASSWORD" | docker login -u "$DOCKER_USER" --password-stdin
@@ -120,7 +120,7 @@ jobs:
             kubectl get services
             api=$(kubectl get services publicapp-${CIRCLE_WORKFLOW_ID:0:7} --output jsonpath='{.status.loadBalancer.ingress[0].hostname}')
             echo $api >> app-endpoint.txt
-            cat app-endpoint.txt
+            cat  ~/app-endpoint.txt
       - persist_to_workspace:
           root: ~/
           paths:
