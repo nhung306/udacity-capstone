@@ -119,7 +119,7 @@ jobs:
           command: |
             kubectl get services
             api=$(kubectl get services publicapp-${CIRCLE_WORKFLOW_ID:0:7} --output jsonpath='{.status.loadBalancer.ingress[0].hostname}')
-            echo $api >> app-endpoint.txt
+            echo $api >> ~/app-endpoint.txt
             cat  ~/app-endpoint.txt
       - persist_to_workspace:
           root: ~/
