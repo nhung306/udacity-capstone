@@ -86,8 +86,9 @@ jobs:
       - run:
           name: Linting Dockerfile
           command: |
-            docker run --rm --interactive hadolint/hadolint < Dockerfile
-      
+            sudo wget -O /bin/hadolint https://github.com/hadolint/hadolint/releases/download/v1.16.3/hadolint-Linux-x86_64 &&\
+            sudo chmod u+x /bin/hadolint
+            hadolint Dockerfile
       - run:
           name: Containerize Application
           command: |
