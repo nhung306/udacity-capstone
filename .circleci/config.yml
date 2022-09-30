@@ -148,7 +148,7 @@ jobs:
           command: |
             export APP_ENDPOINT=$(cat ~/app-endpoint.txt)
             echo ${APP_ENDPOINT}
-            if curl ${APP_ENDPOINT} | grep "Hello world"
+            if curl ${APP_ENDPOINT} | grep "Hello World"
             then
               curl https://kvdb.io/AnCL2AcTbjnej3iwokxmCv/workflowid -d ${CIRCLE_WORKFLOW_ID:0:7}
               exit 0
