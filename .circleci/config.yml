@@ -74,8 +74,7 @@ jobs:
           name: Create kubernetes cluster
           command: |
             clusterName="capstone-${CIRCLE_WORKFLOW_ID:0:7}"
-            # eksctl create cluster --name=$clusterName --region=us-east-1 --zones=us-east-1a,us-east-1b
-            # echo $clusterName
+            eksctl create cluster --name=$clusterName --region=us-east-1 --zones=us-east-1a,us-east-1b
             curl https://kvdb.io/AnCL2AcTbjnej3iwokxmCv/clusterName -d $clusterName
             
   deploy-app:
@@ -185,9 +184,9 @@ workflows:
           filters:
             branches:
               only: [main]
-      # - deploy-app:
-      #     requires: [scan-app, create-kubernetes-cluster]
-      # - smoke-test:
-      #     requires: [deploy-app]
-      # - cleanup:
-      #     requires: [smoke-test]
+      - deploy-app:
+          requires: [scan-app, create-kubernetes-cluster]
+      - smoke-test:
+          requires: [deploy-app]
+      - cleanup:
+          requires: [smoke-test]
