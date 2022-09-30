@@ -128,6 +128,7 @@ jobs:
             done
             echo 'Found external hostname: '$api
             echo $api >> ~/app-endpoint.txt
+            sleep 1m
       - persist_to_workspace:
           root: ~/
           paths:
@@ -150,9 +151,9 @@ jobs:
             if curl ${APP_ENDPOINT} | grep "Hello world"
             then
               curl https://kvdb.io/AnCL2AcTbjnej3iwokxmCv/workflowid -d ${CIRCLE_WORKFLOW_ID:0:7}
-              return 0
+              exit 0
             else
-              return 1
+              exit 1
             fi
             
       - delete-service:
