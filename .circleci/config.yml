@@ -116,10 +116,13 @@ jobs:
       - run:
           name: store app endpoint and old
           command: |
-            kubectl get services
-            api=$(kubectl get services publicapp-${CIRCLE_WORKFLOW_ID:0:7} --output jsonpath='{.status.loadBalancer.ingress[0].hostname}')
+            api=""
+            while [ -z $ip ]; do
+              api=$(kubectl get services publicapp-${CIRCLE_WORKFLOW_ID:0:7} --output jsonpath='{.status.loadBalancer.ingress[0].hostname}')
+              [ -z "$api" ] && sleep 15
+            done
+            echo 'Found external hostname: '$api
             echo $api >> ~/app-endpoint.txt
-            cat  ~/app-endpoint.txt
       - persist_to_workspace:
           root: ~/
           paths:
