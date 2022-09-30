@@ -112,6 +112,7 @@ jobs:
             export KUBECONFIG=/home/circleci/.kube/config
             kubectl create deploy udacity-${CIRCLE_WORKFLOW_ID:0:7} --image=$dockerpath
             kubectl expose deployment udacity-${CIRCLE_WORKFLOW_ID:0:7} --type=LoadBalancer --name=publicapp-${CIRCLE_WORKFLOW_ID:0:7} --port=80 --target-port=3000
+            kubectl wait --for=condition=Ready --all pod
             
       - run:
           name: store app endpoint and old
