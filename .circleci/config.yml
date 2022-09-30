@@ -19,7 +19,7 @@ commands:
           name: Delete Image
           when: <<parameters.condition>>
           command: |
-            kubectl delete service capstoneApp-<<parameters.workflow_id>>
+            kubectl delete service capstoneapp-<<parameters.workflow_id>>
   
 jobs:
   build-app:
@@ -117,7 +117,7 @@ jobs:
             aws eks --region us-east-1 update-kubeconfig --name ${clusterName}
             export KUBECONFIG=/home/circleci/.kube/config
             kubectl create deploy udacity-${CIRCLE_WORKFLOW_ID:0:7} --image=$dockerpath
-            kubectl expose deployment udacity-${CIRCLE_WORKFLOW_ID:0:7} --type=LoadBalancer --name=capstoneApp-${CIRCLE_WORKFLOW_ID:0:7} --port=80 --target-port=3000
+            kubectl expose deployment udacity-${CIRCLE_WORKFLOW_ID:0:7} --type=LoadBalancer --name=capstoneapp-${CIRCLE_WORKFLOW_ID:0:7} --port=80 --target-port=3000
             kubectl wait --for=condition=Ready --all pod
             
       - run:
@@ -125,7 +125,7 @@ jobs:
           command: |
             api=""
             while [ -z $api ]; do
-              api=$(kubectl get services capstoneApp-${CIRCLE_WORKFLOW_ID:0:7} --output jsonpath='{.status.loadBalancer.ingress[0].hostname}')
+              api=$(kubectl get services capstoneapp-${CIRCLE_WORKFLOW_ID:0:7} --output jsonpath='{.status.loadBalancer.ingress[0].hostname}')
               [ -z "$api" ] && sleep 15
             done
             echo 'Found external hostname: '$api
