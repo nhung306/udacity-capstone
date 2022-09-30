@@ -188,3 +188,7 @@ workflows:
               only: [main]
       - deploy-app:
           requires: [scan-app, create-kubernetes-cluster]
+      - smoke-test:
+          requires: [deploy-app]
+      - cleanup:
+          requires: [smoke-test]
