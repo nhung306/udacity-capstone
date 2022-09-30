@@ -13,8 +13,6 @@ commands:
       workflow_id:
         type: string
     steps:
-      - aws-cli/setup
-      - kubernetes/install-kubectl
       - run:
           name: Delete Image
           when: <<parameters.condition>>
@@ -140,14 +138,10 @@ jobs:
        - image: cimg/base:2021.04
     steps:
       - checkout
+      - aws-cli/setup
+      - kubernetes/install-kubectl
       - attach_workspace:
           at: ~/
-      - run:
-          name: Install dependencies
-          command: |
-            apk add --update curl nodejs npm 
-            pip install awscli
-
       - run:
           name: Smoke test.
           command: |
@@ -170,6 +164,8 @@ jobs:
        - image: cimg/base:2021.04
     steps:
       - checkout
+      - aws-cli/setup
+      - kubernetes/install-kubectl
       - delete-service:
           workflow_id: $(curl --insecure https://kvdb.io/AnCL2AcTbjnej3iwokxmCv/clusterName)
           condition: always
