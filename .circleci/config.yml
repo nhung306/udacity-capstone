@@ -59,13 +59,11 @@ jobs:
 
   create-kubernetes-cluster:
     docker:
-      - image: amazon/aws-cli
+      - image: cimg/base:2021.04
     steps:
       - checkout
-      - run:
-          name: Install tar utility
-          command: |
-            yum install -y tar gzip
+      - aws-cli/setup
+      - kubernetes/install-kubectl
       - run:
           name: Install eksctl
           command: |
