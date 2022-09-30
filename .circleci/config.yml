@@ -5,17 +5,21 @@ orbs:
   kubernetes: circleci/kubernetes@1.0.0
 
 commands:
-  destroy-environment:
-    description: Destroy back-end and front-end cloudformation stacks given a workflow ID.
+  delete-service:
+    description: Delete docker image given a workflow ID.
     parameters:
+      condition:
+        type: string
       workflow_id:
         type: string
     steps:
+      - aws-cli/setup
+      - kubernetes/install-kubectl
       - run:
-          name: Destroy environments
-          when: on_fail
+          name: Delete Image
+          when: <<parameters.condition>>
           command: |
-            echo 'destroy'
+            kubectl delete service capstoneApp-<<parameters.workflow_id>>
   
 jobs:
   build-app:
@@ -71,8 +75,10 @@ jobs:
       - run:
           name: Create kubernetes cluster
           command: |
-            eksctl create cluster --name=eksctl-capstone --region=us-east-1 --zones=us-east-1a,us-east-1b
-        
+            clusterName="capstone-${CIRCLE_WORKFLOW_ID:0:7}"
+            eksctl create cluster --name=$clusterName --region=us-east-1 --zones=us-east-1a,us-east-1b
+            curl https://kvdb.io/AnCL2AcTbjnej3iwokxmCv/clusterName -d $clusterName
+            
   deploy-app:
     docker:
       - image: cimg/base:2021.04
@@ -100,26 +106,28 @@ jobs:
       - run:
           name: Push image
           command: |
-            dockerpath="$DOCKER_USER/udacitycapstone:latest"
+            dockerpath="$DOCKER_USER/udacitycapstone:${CIRCLE_WORKFLOW_ID:0:7}"
             echo "$DOCKERHUB_PASSWORD" | docker login -u "$DOCKER_USER" --password-stdin
             docker tag udacitycapstone $dockerpath
             docker push $dockerpath
+            
       - run:
           name: Deploy to Kubernete cluster
           command:  |
-            dockerpath="$DOCKER_USER/udacitycapstone:latest"
-            aws eks --region us-east-1 update-kubeconfig --name eksctl-capstone
+            export clusterName=$(curl --insecure https://kvdb.io/AnCL2AcTbjnej3iwokxmCv/clusterName)
+            dockerpath="$DOCKER_USER/udacitycapstone:${CIRCLE_WORKFLOW_ID:0:7}"
+            aws eks --region us-east-1 update-kubeconfig --name ${clusterName}
             export KUBECONFIG=/home/circleci/.kube/config
             kubectl create deploy udacity-${CIRCLE_WORKFLOW_ID:0:7} --image=$dockerpath
-            kubectl expose deployment udacity-${CIRCLE_WORKFLOW_ID:0:7} --type=LoadBalancer --name=publicapp-${CIRCLE_WORKFLOW_ID:0:7} --port=80 --target-port=3000
+            kubectl expose deployment udacity-${CIRCLE_WORKFLOW_ID:0:7} --type=LoadBalancer --name=capstoneApp-${CIRCLE_WORKFLOW_ID:0:7} --port=80 --target-port=3000
             kubectl wait --for=condition=Ready --all pod
             
       - run:
-          name: store app endpoint and old
+          name: Store app endpoint
           command: |
             api=""
             while [ -z $api ]; do
-              api=$(kubectl get services publicapp-${CIRCLE_WORKFLOW_ID:0:7} --output jsonpath='{.status.loadBalancer.ingress[0].hostname}')
+              api=$(kubectl get services capstoneApp-${CIRCLE_WORKFLOW_ID:0:7} --output jsonpath='{.status.loadBalancer.ingress[0].hostname}')
               [ -z "$api" ] && sleep 15
             done
             echo 'Found external hostname: '$api
@@ -128,9 +136,45 @@ jobs:
           root: ~/
           paths:
             - app-endpoint.txt
-      - destroy-environment:
-          workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
+  
+  smoke-test:
+    docker:
+       - image: cimg/base:2021.04
+    steps:
+      - checkout
+      - attach_workspace:
+          at: ~/
+      - run:
+          name: Install dependencies
+          command: |
+            apk add --update curl nodejs npm 
+            pip install awscli
 
+      - run:
+          name: Smoke test.
+          command: |
+            export APP_ENDPOINT=$(cat ~/app-endpoint.txt)
+            echo ${APP_ENDPOINT}
+            if curl ${APP_ENDPOINT} | grep "Hello world"
+            then
+              curl https://kvdb.io/AnCL2AcTbjnej3iwokxmCv/workflowid -d ${CIRCLE_WORKFLOW_ID:0:7}
+              return 0
+            else
+              return 1
+            fi
+            
+      - delete-service:
+          workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
+          condition: on_fail
+  
+  cleanup:
+    docker:
+       - image: cimg/base:2021.04
+    steps:
+      - checkout
+      - delete-service:
+          workflow_id: $(curl --insecure https://kvdb.io/AnCL2AcTbjnej3iwokxmCv/clusterName)
+          condition: always
 workflows:
   default:
     jobs:
