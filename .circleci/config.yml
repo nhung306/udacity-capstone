@@ -111,7 +111,7 @@ jobs:
           command: |
             api=""
             while [ -z $api ]; do
-              api=$(kubectl get services capstoneapp-deployment --output jsonpath='{.status.loadBalancer.ingress[0].hostname}')
+              api=$(kubectl get services capstoneservice --output jsonpath='{.status.loadBalancer.ingress[0].hostname}')
               [ -z "$api" ] && sleep 15
             done
             echo 'Found external hostname: '$api
