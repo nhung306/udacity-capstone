@@ -105,7 +105,6 @@ jobs:
             fi
             
             kubectl rollout status deployment/capstone-deployment
-            kubectl wait --for=condition=Ready --all pod
             
       - run:
           name: Store app endpoint
