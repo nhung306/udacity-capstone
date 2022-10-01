@@ -151,6 +151,7 @@ jobs:
             aws eks --region us-east-1 update-kubeconfig --name ${clusterName}
             export KUBECONFIG=/home/circleci/.kube/config
             kubectl rollout undo deployment/capstone-deployment
+            kubectl rollout status deployment/capstone-deployment
 
 workflows:
   default:
