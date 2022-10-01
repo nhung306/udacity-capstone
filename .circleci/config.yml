@@ -147,6 +147,9 @@ jobs:
           name: Rolling back to previous version
           when: on_fail
           command: |
+            export clusterName=$(curl --insecure https://kvdb.io/AnCL2AcTbjnej3iwokxmCv/clusterName)
+            aws eks --region us-east-1 update-kubeconfig --name ${clusterName}
+            export KUBECONFIG=/home/circleci/.kube/config
             kubectl rollout undo deployment/capstone-deployment
 
 workflows:
