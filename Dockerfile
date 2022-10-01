@@ -6,7 +6,7 @@ WORKDIR /app
 
 ## Step 2:
 # Copy source code to working directory
-COPY . helloworld/ /app/
+COaPY . helloworld/ /app/
 
 ## Step 3:
 # Install packages
