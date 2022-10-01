@@ -98,13 +98,14 @@ jobs:
             if kubectl get deployment capstone-deployment ; then
               echo "Updating deployment to ${CIRCLE_WORKFLOW_ID:0:7}"
               kubectl set image deployment/capstone-deployment udacitycapstone=$dockerpath
-              kubectl rollout status deployment/capstone-deployment
             else
               kubectl create deploy capstone-deployment --image=$dockerpath
               kubectl expose deployment capstone-deployment --type=LoadBalancer --name=capstoneservice --port=80 --target-port=3000
+              sleep 1m
             fi
+            
+            kubectl rollout status deployment/capstone-deployment
             kubectl wait --for=condition=Ready --all pod
-            sleep 1m
             
       - run:
           name: Store app endpoint
@@ -114,6 +115,7 @@ jobs:
               api=$(kubectl get services capstoneservice --output jsonpath='{.status.loadBalancer.ingress[0].hostname}')
               [ -z "$api" ] && sleep 15
             done
+            sleep 1m
             echo 'Found external hostname: '$api
             echo $api >> ~/app-endpoint.txt
       - persist_to_workspace:
@@ -135,11 +137,14 @@ jobs:
           command: |
             export APP_ENDPOINT=$(cat ~/app-endpoint.txt)
             echo ${APP_ENDPOINT}
-            if curl ${APP_ENDPOINT} | grep "Hello World"
+            resullt=curl ${APP_ENDPOINT}
+            echo "Check if response contain 'Hello World' text to make sure that api is ok"
+            if echo $resullt | grep "Hello World"
             then
               curl https://kvdb.io/AnCL2AcTbjnej3iwokxmCv/workflowid -d ${CIRCLE_WORKFLOW_ID:0:7}
               exit 0
             else
+              echo $resullt
               exit 1
             fi
             
