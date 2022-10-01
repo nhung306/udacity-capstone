@@ -4,21 +4,6 @@ orbs:
   aws-cli: circleci/aws-cli@3.1
   kubernetes: circleci/kubernetes@1.0.0
 
-commands:
-  delete-service:
-    description: Delete docker image given a workflow ID.
-    parameters:
-      condition:
-        type: string
-      workflow_id:
-        type: string
-    steps:
-      - run:
-          name: Delete Image
-          when: <<parameters.condition>>
-          command: |
-            kubectl delete service capstoneapp-<<parameters.workflow_id>>
-  
 jobs:
   build-app:
     docker:
@@ -94,14 +79,10 @@ jobs:
             sudo chmod a+x /bin/hadolint
             sudo hadolint Dockerfile
       - run:
-          name: Containerize Application
+          name: Containerize Application and Push Image
           command: |
             docker build -t udacitycapstone .
             docker image ls
-            
-      - run:
-          name: Push image
-          command: |
             dockerpath="$DOCKER_USER/udacitycapstone:${CIRCLE_WORKFLOW_ID:0:7}"
             echo "$DOCKERHUB_PASSWORD" | docker login -u "$DOCKER_USER" --password-stdin
             docker tag udacitycapstone $dockerpath
@@ -114,8 +95,14 @@ jobs:
             dockerpath="$DOCKER_USER/udacitycapstone:${CIRCLE_WORKFLOW_ID:0:7}"
             aws eks --region us-east-1 update-kubeconfig --name ${clusterName}
             export KUBECONFIG=/home/circleci/.kube/config
-            kubectl create deploy udacity-${CIRCLE_WORKFLOW_ID:0:7} --image=$dockerpath
-            kubectl expose deployment udacity-${CIRCLE_WORKFLOW_ID:0:7} --type=LoadBalancer --name=capstoneapp-${CIRCLE_WORKFLOW_ID:0:7} --port=80 --target-port=3000
+            if kubectl get deployment capstone-deployment ; then
+              echo "Updating deployment to ${CIRCLE_WORKFLOW_ID:0:7}"
+              kubectl set image deployment/capstone-deployment udacitycapstone=$dockerpath
+              kubectl rollout status deployment/capstone-deployment
+            else
+              kubectl create deploy capstone-deployment --image=$dockerpath
+              kubectl expose deployment capstone-deployment --type=LoadBalancer --name=capstoneservice --port=80 --target-port=3000
+            fi
             kubectl wait --for=condition=Ready --all pod
             
       - run:
@@ -156,20 +143,12 @@ jobs:
               exit 1
             fi
             
-      - delete-service:
-          workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
-          condition: on_fail
-  
-  cleanup:
-    docker:
-       - image: cimg/base:2021.04
-    steps:
-      - checkout
-      - aws-cli/setup
-      - kubernetes/install-kubectl
-      - delete-service:
-          workflow_id: $(curl --insecure https://kvdb.io/AnCL2AcTbjnej3iwokxmCv/clusterName)
-          condition: always
+      - rolling-back:
+          name: Rolling back to previous version
+          when: on_fail
+          command: |
+            kubectl rollout undo deployment/capstone-deployment
+
 workflows:
   default:
     jobs:
@@ -185,5 +164,3 @@ workflows:
           requires: [scan-app, create-kubernetes-cluster]
       - smoke-test:
           requires: [deploy-app]
-      - cleanup:
-          requires: [smoke-test]
