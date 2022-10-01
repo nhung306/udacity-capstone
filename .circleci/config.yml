@@ -104,18 +104,18 @@ jobs:
               kubectl expose deployment capstone-deployment --type=LoadBalancer --name=capstoneservice --port=80 --target-port=3000
             fi
             kubectl wait --for=condition=Ready --all pod
+            sleep 1m
             
       - run:
           name: Store app endpoint
           command: |
             api=""
             while [ -z $api ]; do
-              api=$(kubectl get services capstoneapp-${CIRCLE_WORKFLOW_ID:0:7} --output jsonpath='{.status.loadBalancer.ingress[0].hostname}')
+              api=$(kubectl get services capstoneapp-deployment --output jsonpath='{.status.loadBalancer.ingress[0].hostname}')
               [ -z "$api" ] && sleep 15
             done
             echo 'Found external hostname: '$api
             echo $api >> ~/app-endpoint.txt
-            sleep 1m
       - persist_to_workspace:
           root: ~/
           paths:
