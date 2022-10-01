@@ -137,7 +137,7 @@ jobs:
           command: |
             export APP_ENDPOINT=$(cat ~/app-endpoint.txt)
             echo ${APP_ENDPOINT}
-            resullt=curl ${APP_ENDPOINT}
+            resullt=$(curl ${APP_ENDPOINT})
             echo "Check if response contain 'Hello World' text to make sure that api is ok"
             if echo $resullt | grep "Hello World"
             then
