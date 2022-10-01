@@ -3,7 +3,7 @@ const port = 3000;
 
 const server = http.createServer((req, res) => {
   res.statusCode = 200;
-  const msg = 'Hello Worl, my name is Minh Duong v2\n'
+  const msg = 'Hello World, my name is Minh Duong v1\n'
   res.end(msg);
 });
 
