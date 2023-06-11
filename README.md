@@ -19,11 +19,11 @@ This is a simple "Hello, World!" site deploy and hosted with Nodejs
 - Map custom domain to LoadBalancer DNS Name
 
 # Steps
-Deploy app
-Setup the EKS cluster
-Linting the Dockerfile
-Build and push the image to dockerhub
-Deploy to Kubernete cluster
-Send notity to slack
-After deploy, using Curl to check if the app is up and running at port 80
-Finally, I check if the app successfully rolled out or not
+- Deploy app
+- Setup the EKS cluster
+- Linting the Dockerfile
+- Build and push the image to dockerhub
+- Deploy to Kubernete cluster
+- Send notity to slack
+- After deploy, using Curl to check if the app is up and running at port 80
+- Finally, I check if the app successfully rolled out or not
