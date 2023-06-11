@@ -21,6 +21,9 @@ jobs:
       - slack/notify:
           event: fail
           template: basic_fail_1
+      - slack/notify:
+          event: pass
+          template: success_tagged_deploy_1
 
   scan-app:
     docker:
@@ -156,6 +159,12 @@ jobs:
             export KUBECONFIG=/home/circleci/.kube/config
             kubectl rollout undo deployment/capstone-deployment
             kubectl rollout status deployment/capstone-deployment
+      - slack/notify:
+          event: fail
+          template: basic_fail_1
+      - slack/notify:
+          event: pass
+          template: success_tagged_deploy_1
 
 workflows:
   default:
