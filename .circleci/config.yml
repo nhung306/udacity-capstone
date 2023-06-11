@@ -1,5 +1,5 @@
 version: 2.1
-orbs: 
+orbs:
   slack: circleci/slack@4.10.1
   aws-cli: circleci/aws-cli@3.1
   kubernetes: circleci/kubernetes@1.0.0
@@ -21,21 +21,21 @@ jobs:
       - slack/notify:
           event: fail
           template: basic_fail_1
-  
+
   scan-app:
     docker:
       - image: circleci/node:13.8.0
     steps:
       - checkout
       - restore_cache:
-          keys: 
+          keys:
             - helloworld-{{ checksum "helloworld/package.json" }}
             - helloworld-
-          
+
       - run:
           name: scan-app run
           command: |
-            echo {checksum "helloworld/packages.json"}
+            echo {checksum "helloworld/package.json"}
             cd helloworld
             npm install
             npm audit --audit-level=critical
@@ -52,14 +52,14 @@ jobs:
           command: |
             curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
             sudo mv /tmp/eksctl /usr/local/bin
-          
+
       - run:
           name: Create kubernetes cluster
           command: |
             clusterName="capstone-${CIRCLE_WORKFLOW_ID:0:7}"
             eksctl create cluster --name=$clusterName --region=us-east-1 --zones=us-east-1a,us-east-1b
-            curl https://kvdb.io/AnCL2AcTbjnej3iwokxmCv/clusterName -d $clusterName
-            
+            curl https://kvdb.io/XLZkyYakZRfDuFTBLKUQk6/clusterName -d $clusterName
+
   deploy-app:
     docker:
       - image: cimg/base:2021.04
@@ -71,7 +71,7 @@ jobs:
       - aws-cli/setup
       - kubernetes/install-kubectl
       - setup_remote_docker:
-          version: 20.10.14 
+          version: 20.10.14
       - run:
           name: Linting Dockerfile
           command: |
@@ -87,11 +87,11 @@ jobs:
             echo "$DOCKERHUB_PASSWORD" | docker login -u "$DOCKER_USER" --password-stdin
             docker tag udacitycapstone $dockerpath
             docker push $dockerpath
-            
+
       - run:
           name: Deploy to Kubernete cluster
-          command:  |
-            export clusterName=$(curl --insecure https://kvdb.io/AnCL2AcTbjnej3iwokxmCv/clusterName)
+          command: |
+            export clusterName=$(curl --insecure https://kvdb.io/XLZkyYakZRfDuFTBLKUQk6/clusterName)
             dockerpath="$DOCKER_USER/udacitycapstone:${CIRCLE_WORKFLOW_ID:0:7}"
             aws eks --region us-east-1 update-kubeconfig --name ${clusterName}
             export KUBECONFIG=/home/circleci/.kube/config
@@ -103,9 +103,9 @@ jobs:
               kubectl expose deployment capstone-deployment --type=LoadBalancer --name=capstoneservice --port=80 --target-port=3000
               sleep 1m
             fi
-            
+
             kubectl rollout status deployment/capstone-deployment
-            
+
       - run:
           name: Store app endpoint
           command: |
@@ -121,10 +121,10 @@ jobs:
           root: ~/
           paths:
             - app-endpoint.txt
-  
+
   smoke-test:
     docker:
-       - image: cimg/base:2021.04
+      - image: cimg/base:2021.04
     steps:
       - checkout
       - aws-cli/setup
@@ -140,18 +140,18 @@ jobs:
             echo "Check if response contain 'Hello World' text to make sure that api is ok"
             if echo $resullt | grep "Hello World"
             then
-              curl https://kvdb.io/AnCL2AcTbjnej3iwokxmCv/workflowid -d ${CIRCLE_WORKFLOW_ID:0:7}
+              curl https://kvdb.io/XLZkyYakZRfDuFTBLKUQk6/workflowid -d ${CIRCLE_WORKFLOW_ID:0:7}
               exit 0
             else
               echo $resullt
               exit 1
             fi
-            
+
       - run:
           name: Rolling back to previous version
           when: on_fail
           command: |
-            export clusterName=$(curl --insecure https://kvdb.io/AnCL2AcTbjnej3iwokxmCv/clusterName)
+            export clusterName=$(curl --insecure https://kvdb.io/XLZkyYakZRfDuFTBLKUQk6/clusterName)
             aws eks --region us-east-1 update-kubeconfig --name ${clusterName}
             export KUBECONFIG=/home/circleci/.kube/config
             kubectl rollout undo deployment/capstone-deployment
