@@ -21,9 +21,6 @@ jobs:
       - slack/notify:
           event: fail
           template: basic_fail_1
-      - slack/notify:
-          event: pass
-          template: success_tagged_deploy_1
 
   scan-app:
     docker:
@@ -90,6 +87,12 @@ jobs:
             echo "$DOCKERHUB_PASSWORD" | docker login -u "$DOCKER_USER" --password-stdin
             docker tag udacitycapstone $dockerpath
             docker push $dockerpath
+      - slack/notify:
+	        event: fail
+	        template: basic_fail_1
+      - slack/notify:
+	        event: pass
+	        template: success_tagged_deploy_1
 
       - run:
           name: Deploy to Kubernete cluster
