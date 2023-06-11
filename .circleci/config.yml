@@ -167,7 +167,7 @@ workflows:
           requires: [scan-app]
           filters:
             branches:
-              only: [main]
+              only: [dev]
       - deploy-app:
           requires: [scan-app, create-kubernetes-cluster]
       - smoke-test:
